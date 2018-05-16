@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import subprocess
 
 #input folders/tests
 files = ["startup.helloworld", "startup.compiler.compiler", "startup.compress", "startup.crypto.aes", "startup.crypto.rsa", "startup.crypto.signverify",
@@ -133,32 +134,34 @@ def openFile():
 			#iterate over testfiles
 			for filename in os.listdir(path):
 				if re.match(".*G1GC*", filename):
-					if "TH=4" in filename:
-						if "_1MB" in filename:
-							# GCparseFile("G1-4-1",myfile,filename,path)
-							heapParse("G1-4-1",myfile,filename,path)
-						elif "_8MB" in filename:
-							# GCparseFile("G1-4-8",myfile,filename,path)
-							heapParse("G1-4-8",myfile,filename,path)
-						elif "_16MB" in filename:
-							# GCparseFile("G1-4-16",myfile,filename,path)
-							heapParse("G1-4-16",myfile,filename,path)
-						elif "_32MB" in filename:
-							# GCparseFile("G1-4-32",myfile,filename,path)
-							heapParse("G1-4-32",myfile,filename,path)
-					else:
-						if "_1MB" in filename:
-							# GCparseFile("G1-8-1",myfile,filename,path)
-							heapParse("G1-8-1",myfile,filename,path)
-						elif "_8MB" in filename:
-							# GCparseFile("G1-8-8",myfile,filename,path)
-							heapParse("G1-8-8",myfile,filename,path)
-						elif "_16MB" in filename:
-							# GCparseFile("G1-8-16",myfile,filename,path)
-							heapParse("G1-8-16",myfile,filename,path)
-						elif "_32MB" in filename:
-							# GCparseFile("G1-8-32",myfile,filename,path)
-							heapParse("G1-8-32",myfile,filename,path)
+					with open(os.path.join(os.path.dirname("outputs/gc/"), "temp_g1"), 'wb')	as	tf:
+						subprocess.call(["awk", '/GC pause/{nr[NR]; nr[NR+25]; nr[NR+26]}; NR in nr', os.path.join(path, filename)], stdout=tf)
+						if "TH=4" in filename:
+							if "_1MB" in filename:
+								GCparseFile("G1-4-1","temp_g1","temp_g1",os.path.dirname("outputs/gc/"))
+								heapParse("G1-4-1",myfile,filename,path)
+							elif "_8MB" in filename:
+								# GCparseFile("G1-4-8",myfile,filename,path)
+								heapParse("G1-4-8",myfile,filename,path)
+							elif "_16MB" in filename:
+								# GCparseFile("G1-4-16",myfile,filename,path)
+								heapParse("G1-4-16",myfile,filename,path)
+							elif "_32MB" in filename:
+								# GCparseFile("G1-4-32",myfile,filename,path)
+								heapParse("G1-4-32",myfile,filename,path)
+						else:
+							if "_1MB" in filename:
+								# GCparseFile("G1-8-1",myfile,filename,path)
+								heapParse("G1-8-1",myfile,filename,path)
+							elif "_8MB" in filename:
+								# GCparseFile("G1-8-8",myfile,filename,path)
+								heapParse("G1-8-8",myfile,filename,path)
+							elif "_16MB" in filename:
+								# GCparseFile("G1-8-16",myfile,filename,path)
+								heapParse("G1-8-16",myfile,filename,path)
+							elif "_32MB" in filename:
+								# GCparseFile("G1-8-32",myfile,filename,path)
+								heapParse("G1-8-32",myfile,filename,path)
 				elif re.match(".*ConcMark*",filename):
 					if "4_threads" in filename:
 						# GCparseFile("CSM-4",myfile,filename,path)
