@@ -9,9 +9,18 @@ files = ["startup.helloworld", "startup.compiler.compiler", "startup.compress", 
                         "scimark.sparse.large", "scimark.fft.small", "scimark.lu.small", "scimark.sor.small", "scimark.sparse.small", "scimark.monte_carlo",
                         "serial", "xml.validation"]
 
+# deletes a file if exists
+def silentremove(filename):
+    try:
+        os.remove(filename)
+    except OSError as e: # this would be "except OSError, e:" before Python 2.6
+        if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
+            raise # re-raise exception if a different error occurred
+
 #outpus heap/gc results
 def outputToFile(path,filename,myinput,gc,times=-1):
 
+	silentremove(os.path.join(path, filename))
 	with open(os.path.join(path, filename),'a') as f:
 		if times == -1:
 			f.write(gc +":" + myinput + "\n")
@@ -158,7 +167,7 @@ def openFile():
 						heapParse("Parallel-8",myfile,filename,path)
 				else:
 					print("couldnt handle "+filename)	
-		except FileNotFoundError:
+		except IOError as err:
 			print("folder:"+myfile+" not found")
 		
 
