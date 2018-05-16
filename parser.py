@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+from datetime import datetime
 
 #input folders/tests
 files = ["startup.helloworld", "startup.compiler.compiler", "startup.compress", "startup.crypto.aes", "startup.crypto.rsa", "startup.crypto.signverify",
@@ -90,9 +91,11 @@ def GCparseFile(gc,myfile,filename,path):
 	with open(os.path.join(path, filename), 'r') as f:
 		lines = f.readlines()
 		for i,line in enumerate(lines):
+			#if not in warmup
 			if flag == 1:
+				# G1 case
 				if re.match("G1", gc):
-					if re.match(".*GC pause*",line):
+					if re.match(".*GC pause*",line) or re.match(".*Full GC*",line):
 							j = i
 							while True:
 								if re.match(".*\[Times: user=*",lines[j]):
@@ -100,19 +103,37 @@ def GCparseFile(gc,myfile,filename,path):
 									splitted = lines[j].split("[")
 									correct = splitted[len(splitted)-1]
 									times = re.split('[= ,]',correct)
+									# print("\t"+times[2]+"\t"+times[4]+"\t"+times[7])
 									usert += float(times[2])
 									syst += float(times[4])
 									realt += float(times[7])
+									# print("\t"+str(usert)+"\t"+str(syst)+"\t"+str(realt))
 									break
 								j+=1
-			elif re.match(".*\[Times: user=*",line):
-				gcpause += 1
-				splitted = line.split("[")
-				correct = splitted[len(splitted)-1]
-				times = re.split('[= ,]',correct)
-				usert += float(times[2])
-				syst += float(times[4])
-				realt += float(times[7])
+				# CMS case
+				elif re.match("CSM", gc):
+					# print("in CSM now..")
+					if any (re.match(regex, line) for regex in [".*CMS Initial Mark*", ".*CMS Final Remark*", ".*concurrent mode failure*"]): #re.match(".*GC pause*",line):
+					# print(i)
+					# if re.match(".*CMS Initial Mark*",line) or re.match(".*CMS Initial Mark*",line):
+						# print("found initial mark")
+						gcpause += 1
+						# gcpause += 1
+						splitted = line.split("[")
+						correct = splitted[len(splitted)-1]
+						times = re.split('[= ,]',correct)
+						usert += float(times[2])
+						syst += float(times[4])
+						realt += float(times[7])
+				# Parallel/Serial
+				elif re.match(".*\[Times: user=*",line):
+					gcpause += 1
+					splitted = line.split("[")
+					correct = splitted[len(splitted)-1]
+					times = re.split('[= ,]',correct)
+					usert += float(times[2])
+					syst += float(times[4])
+					realt += float(times[7])
 			elif re.match("Warmup \(.*\) result:",line):
 				flag = 1
 			if "NOT VALID" in line:
@@ -121,7 +142,7 @@ def GCparseFile(gc,myfile,filename,path):
 	if valid == 0:
 		gc = "NOT VALID-"+gc
 	correct = "{:.2f}".format(usert)+" "+"{:.2f}".format(syst)+" "+"{:.2f}".format(realt)
-	outputToFile("outputs/gc/",myfile,correct,gc,gcpause,"#\tgc\tuserT\tsysT\tealT\tgcCount")
+	outputToFile("outputs/gc/",myfile,correct,gc,gcpause,"#\tgc\tuserT\tsysT\trealT\tgcCount")
 
 # Get Scores
 def ScoreParse(gc,myfile,filename,path):
@@ -214,6 +235,51 @@ def GCAllocationFailures(gc,myfile,filename,path):
 # 	# correct = "{:.2f}".format(usert)+" "+"{:.2f}".format(syst)+" "+"{:.2f}".format(realt)
 # 	outputToFile("outputs/allocation_failures/",myfile,afCounter,gc,-1,"#\tAllocation Failures")
 
+#	a			b	d		H:M:S
+# Sun May 13 18:52:30 EEST 2018
+# **** Sun May 13 00:47:19 ****
+def __datetime(date_str):
+	# print("****"+date_str+"****")
+	return datetime.strptime(date_str, ' %a %b %d %H:%M:%S ')
+
+# Get duration of benchmark
+def parseTimes(gc,myfile,filename,path):
+	flag = 0
+	begins = ""
+	ends = ""
+	# usert = 0
+	# syst = 0
+	# realt = 0
+	# gcpause = 0
+	# cms_mark = 0
+	valid = 1
+	# print("GC:"+gc+":"+path+filename)
+	# correct = "\t"
+	# skipRest = False
+	# afCounter = 0
+	with open(os.path.join(path, filename), 'r') as f:
+		lines = f.readlines()
+		for i,line in enumerate(lines):
+			if re.match(".*begins:*",line):
+				splitted = line.split(":",1)
+				begins = splitted[1].split("EEST",1)[0]
+				# print(__datetime(begins))
+			if re.match(".*ends:*",line):
+				splitted = line.split(":", 1)
+				ends = splitted[1].split("EEST",1)[0]
+			if "NOT VALID" in line:
+				valid = 0
+	#check if valid testfile
+	if valid == 0:
+		gc = "NOT VALID-"+gc
+
+		# start = __datetime(start_date)
+		# end = __datetime(end_date)
+
+	delta = __datetime(ends) - __datetime(begins)
+		#print delta  # prints: 1 day, 7:50:05
+		#print delta.total_seconds()  # prints: 114605.0
+	outputToFile("outputs/duration/",myfile, str(delta.total_seconds()),gc,-1,"#\tAllocation Failures")
 
 def G1read(myfile,filename,path):
 	flag = 0
@@ -228,6 +294,13 @@ def CSMread(myfile,filename,path):
 		for line in f:
 			pass
 
+def	parseAllData(title,myfile,filename,path):
+	GCparseFile(title,myfile,filename,path)
+	heapParse(title,myfile,filename,path)
+	ScoreParse(title,myfile,filename,path)
+	GCAllocationFailures(title,myfile,filename,path)
+	parseTimes(title,myfile,filename,path)
+
 def openFile():
 	#create folders if not there
 	try:
@@ -235,10 +308,12 @@ def openFile():
 		silentremove(os.path.dirname("outputs/heap/"))
 		silentremove(os.path.dirname("outputs/scores/"))
 		silentremove(os.path.dirname("outputs/allocation_failures/"))
+		silentremove(os.path.dirname("outputs/duration/"))
 		os.makedirs(os.path.dirname("outputs/heap/"))
 		os.makedirs(os.path.dirname("outputs/gc/"))
 		os.makedirs(os.path.dirname("outputs/scores/"))
 		os.makedirs(os.path.dirname("outputs/allocation_failures/"))
+		os.makedirs(os.path.dirname("outputs/duration/"))
 	except FileExistsError:
 		pass
 	#iterate over folders/tests
@@ -253,73 +328,73 @@ def openFile():
 						if "TH=4" in filename:
 							if "_1MB" in filename:
 								# GCparseFile("G1-4-1","temp_g1","temp_g1",os.path.dirname("outputs/gc/"))
-								GCparseFile("G1-4-1",myfile,filename,path)
-								heapParse("G1-4-1",myfile,filename,path)
-								ScoreParse("G1-4-1",myfile,filename,path)
-								GCAllocationFailures("G1-4-1",myfile,filename,path)
+								parseAllData("G1-4-1",myfile,filename,path)
+								# heapParse("G1-4-1",myfile,filename,path)
+								# ScoreParse("G1-4-1",myfile,filename,path)
+								# GCAllocationFailures("G1-4-1",myfile,filename,path)
 							elif "_8MB" in filename:
-								GCparseFile("G1-4-8",myfile,filename,path)
-								heapParse("G1-4-8",myfile,filename,path)
-								ScoreParse("G1-4-8",myfile,filename,path)
-								GCAllocationFailures("G1-4-8",myfile,filename,path)
+								parseAllData("G1-4-8",myfile,filename,path)
+								# heapParse("G1-4-8",myfile,filename,path)
+								# ScoreParse("G1-4-8",myfile,filename,path)
+								# GCAllocationFailures("G1-4-8",myfile,filename,path)
 							elif "_16MB" in filename:
-								GCparseFile("G1-4-16",myfile,filename,path)
-								heapParse("G1-4-16",myfile,filename,path)
-								ScoreParse("G1-4-16",myfile,filename,path)
-								GCAllocationFailures("G1-4-16",myfile,filename,path)
+								parseAllData("G1-4-16",myfile,filename,path)
+								# heapParse("G1-4-16",myfile,filename,path)
+								# ScoreParse("G1-4-16",myfile,filename,path)
+								# GCAllocationFailures("G1-4-16",myfile,filename,path)
 							elif "_32MB" in filename:
-								GCparseFile("G1-4-32",myfile,filename,path)
-								heapParse("G1-4-32",myfile,filename,path)
-								ScoreParse("G1-4-32",myfile,filename,path)
-								GCAllocationFailures("G1-4-32",myfile,filename,path)
+								parseAllData("G1-4-32",myfile,filename,path)
+								# heapParse("G1-4-32",myfile,filename,path)
+								# ScoreParse("G1-4-32",myfile,filename,path)
+								# GCAllocationFailures("G1-4-32",myfile,filename,path)
 						else:
 							if "_1MB" in filename:
-								GCparseFile("G1-8-1",myfile,filename,path)
-								heapParse("G1-8-1",myfile,filename,path)
-								ScoreParse("G1-8-1",myfile,filename,path)
-								GCAllocationFailures("G1-8-1",myfile,filename,path)
+								parseAllData("G1-8-1",myfile,filename,path)
+								# heapParse("G1-8-1",myfile,filename,path)
+								# ScoreParse("G1-8-1",myfile,filename,path)
+								# GCAllocationFailures("G1-8-1",myfile,filename,path)
 							elif "_8MB" in filename:
-								GCparseFile("G1-8-8",myfile,filename,path)
-								heapParse("G1-8-8",myfile,filename,path)
-								ScoreParse("G1-8-8",myfile,filename,path)
-								GCAllocationFailures("G1-8-8",myfile,filename,path)
+								parseAllData("G1-8-8",myfile,filename,path)
+								# heapParse("G1-8-8",myfile,filename,path)
+								# ScoreParse("G1-8-8",myfile,filename,path)
+								# GCAllocationFailures("G1-8-8",myfile,filename,path)
 							elif "_16MB" in filename:
-								GCparseFile("G1-8-16",myfile,filename,path)
-								heapParse("G1-8-16",myfile,filename,path)
-								ScoreParse("G1-8-15",myfile,filename,path)
-								GCAllocationFailures("G1-8-16",myfile,filename,path)
+								parseAllData("G1-8-16",myfile,filename,path)
+								# heapParse("G1-8-16",myfile,filename,path)
+								# ScoreParse("G1-8-15",myfile,filename,path)
+								# GCAllocationFailures("G1-8-16",myfile,filename,path)
 							elif "_32MB" in filename:
-								GCparseFile("G1-8-32",myfile,filename,path)
-								heapParse("G1-8-32",myfile,filename,path)
-								ScoreParse("G1-8-32",myfile,filename,path)
-								GCAllocationFailures("G1-8-32",myfile,filename,path)
+								parseAllData("G1-8-32",myfile,filename,path)
+								# heapParse("G1-8-32",myfile,filename,path)
+								# ScoreParse("G1-8-32",myfile,filename,path)
+								# GCAllocationFailures("G1-8-32",myfile,filename,path)
 				elif re.match(".*ConcMark*",filename):
 					if "4_threads" in filename:
-						# GCparseFile("CSM-4",myfile,filename,path)
-						heapParse("CSM-4",myfile,filename,path)
-						ScoreParse("CSM-4",myfile,filename,path)
-						GCAllocationFailures("CSM-4",myfile,filename,path)
+						parseAllData("CSM-4",myfile,filename,path)
+						# heapParse("CSM-4",myfile,filename,path)
+						# ScoreParse("CSM-4",myfile,filename,path)
+						# GCAllocationFailures("CSM-4",myfile,filename,path)
 					elif "8_threads" in filename:
-						# GCparseFile("CSM-8",myfile,filename,path)
-						heapParse("CSM-8",myfile,filename,path)
-						ScoreParse("CSM-8",myfile,filename,path)
-						GCAllocationFailures("CSM-8",myfile,filename,path)
+						parseAllData("CSM-8",myfile,filename,path)
+						# heapParse("CSM-8",myfile,filename,path)
+						# ScoreParse("CSM-8",myfile,filename,path)
+						# GCAllocationFailures("CSM-8",myfile,filename,path)
 				elif re.match(".*SerialGc*",filename):
-					GCparseFile("Serial",myfile,filename,path)
-					heapParse("Serial",myfile,filename,path)
-					ScoreParse("Serial",myfile,filename,path)
-					GCAllocationFailures("Serial",myfile,filename,path)
+					parseAllData("Serial",myfile,filename,path)
+					# heapParse("Serial",myfile,filename,path)
+					# ScoreParse("Serial",myfile,filename,path)
+					# GCAllocationFailures("Serial",myfile,filename,path)
 				elif re.match(".*ParallelOldGC*",filename):
 					if "4_threads" in filename:
-						GCparseFile("Parallel-4",myfile,filename,path)
-						heapParse("Parallel-4",myfile,filename,path)
-						ScoreParse("Parallel-4",myfile,filename,path)
-						GCAllocationFailures("Parallel-4",myfile,filename,path)
+						parseAllData("Parallel-4",myfile,filename,path)
+						# heapParse("Parallel-4",myfile,filename,path)
+						# ScoreParse("Parallel-4",myfile,filename,path)
+						# GCAllocationFailures("Parallel-4",myfile,filename,path)
 					elif "8_threads" in filename:
-						GCparseFile("Parallel-8",myfile,filename,path)
-						heapParse("Parallel-8",myfile,filename,path)
-						ScoreParse("Parallel-8",myfile,filename,path)
-						GCAllocationFailures("Parallel-8",myfile,filename,path)
+						parseAllData("Parallel-8",myfile,filename,path)
+						# heapParse("Parallel-8",myfile,filename,path)
+						# ScoreParse("Parallel-8",myfile,filename,path)
+						# GCAllocationFailures("Parallel-8",myfile,filename,path)
 				else:
 					print("couldnt handle "+filename)	
 		except FileExistsError as err:
