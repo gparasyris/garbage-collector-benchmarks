@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 
 #input folders/tests
 files = ["startup.helloworld", "startup.compiler.compiler", "startup.compress", "startup.crypto.aes", "startup.crypto.rsa", "startup.crypto.signverify",
@@ -9,18 +10,16 @@ files = ["startup.helloworld", "startup.compiler.compiler", "startup.compress", 
                         "scimark.sparse.large", "scimark.fft.small", "scimark.lu.small", "scimark.sor.small", "scimark.sparse.small", "scimark.monte_carlo",
                         "serial", "xml.validation"]
 
-# deletes a file if exists
+# deletes a directory if exists
 def silentremove(filename):
-    try:
-        os.remove(filename)
-    except OSError as e: # this would be "except OSError, e:" before Python 2.6
-        if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
-            raise # re-raise exception if a different error occurred
+		try:
+			shutil.rmtree(filename, ignore_errors=True, onerror=None)
+		except FileExistsError as err:
+			print("folder:"+filename+" not found")
 
 #outpus heap/gc results
 def outputToFile(path,filename,myinput,gc,times=-1):
 
-	silentremove(os.path.join(path, filename))
 	with open(os.path.join(path, filename),'a') as f:
 		if times == -1:
 			f.write(gc +":" + myinput + "\n")
@@ -121,6 +120,8 @@ def CSMread(myfile,filename,path):
 def openFile():
 	#create folders if not there
 	try:
+		silentremove(os.path.dirname("outputs/gc/"))
+		silentremove(os.path.dirname("outputs/heap/"))
 		os.makedirs(os.path.dirname("outputs/heap/"))
 		os.makedirs(os.path.dirname("outputs/gc/"))
 	except FileExistsError:
@@ -134,26 +135,36 @@ def openFile():
 				if re.match(".*G1GC*", filename):
 					if "TH=4" in filename:
 						if "_1MB" in filename:
+							# GCparseFile("G1-4-1",myfile,filename,path)
 							heapParse("G1-4-1",myfile,filename,path)
 						elif "_8MB" in filename:
+							# GCparseFile("G1-4-8",myfile,filename,path)
 							heapParse("G1-4-8",myfile,filename,path)
 						elif "_16MB" in filename:
+							# GCparseFile("G1-4-16",myfile,filename,path)
 							heapParse("G1-4-16",myfile,filename,path)
 						elif "_32MB" in filename:
+							# GCparseFile("G1-4-32",myfile,filename,path)
 							heapParse("G1-4-32",myfile,filename,path)
 					else:
 						if "_1MB" in filename:
+							# GCparseFile("G1-8-1",myfile,filename,path)
 							heapParse("G1-8-1",myfile,filename,path)
 						elif "_8MB" in filename:
+							# GCparseFile("G1-8-8",myfile,filename,path)
 							heapParse("G1-8-8",myfile,filename,path)
 						elif "_16MB" in filename:
+							# GCparseFile("G1-8-16",myfile,filename,path)
 							heapParse("G1-8-16",myfile,filename,path)
 						elif "_32MB" in filename:
+							# GCparseFile("G1-8-32",myfile,filename,path)
 							heapParse("G1-8-32",myfile,filename,path)
 				elif re.match(".*ConcMark*",filename):
 					if "4_threads" in filename:
+						# GCparseFile("CSM-4",myfile,filename,path)
 						heapParse("CSM-4",myfile,filename,path)
 					elif "8_threads" in filename:
+						# GCparseFile("CSM-8",myfile,filename,path)
 						heapParse("CSM-8",myfile,filename,path)
 				elif re.match(".*SerialGc*",filename):
 					GCparseFile("Serial",myfile,filename,path)
@@ -167,7 +178,7 @@ def openFile():
 						heapParse("Parallel-8",myfile,filename,path)
 				else:
 					print("couldnt handle "+filename)	
-		except IOError as err:
+		except FileExistsError as err:
 			print("folder:"+myfile+" not found")
 		
 
