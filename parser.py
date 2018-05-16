@@ -25,9 +25,9 @@ def outputToFile(path,filename,myinput,gc,times=-1, header=""):
 		if( header != "" and os.stat(os.path.join(path, filename)).st_size == 0):
 			f.write(header + "\n")
 		if times == -1:
-			f.write(gc +":" + myinput + "\n")
+			f.write(gc +":\t" + myinput + "\n")
 		else:
-			f.write(gc +":" + myinput + " " +str(times)+"\n")
+			f.write(gc +":\t" + myinput + " " +str(times)+"\n")
 	f.close()
 
 #parses heap values
@@ -123,6 +123,7 @@ def GCparseFile(gc,myfile,filename,path):
 	correct = "{:.2f}".format(usert)+" "+"{:.2f}".format(syst)+" "+"{:.2f}".format(realt)
 	outputToFile("outputs/gc/",myfile,correct,gc,gcpause,"#\tgc\tuserT\tsysT\tealT\tgcCount")
 
+# Get Scores
 def ScoreParse(gc,myfile,filename,path):
 	flag = 0
 	usert = 0
@@ -155,7 +156,63 @@ def ScoreParse(gc,myfile,filename,path):
 	# correct = "{:.2f}".format(usert)+" "+"{:.2f}".format(syst)+" "+"{:.2f}".format(realt)
 	outputToFile("outputs/scores/",myfile,correct,gc,-1,"#\tscore (higher is better)")
 
+#parse GC Allocation Failures for count/times
+def GCAllocationFailures(gc,myfile,filename,path):
+	flag = 0
+	usert = 0
+	syst = 0
+	realt = 0
+	gcpause = 0
+	cms_mark = 0
+	valid = 1
+	print("GC:"+gc+":"+path+filename)
+	correct = "\t"
+	skipRest = False
+	afCounter = 0
+	with open(os.path.join(path, filename), 'r') as f:
+		lines = f.readlines()
+		for i,line in enumerate(lines):
+			# if(skipRest):
+				# break
+			if flag == 1 or re.match(".*startup*", filename):
+				# if score is in line get the second to last column of that line
+				if re.match(".*Allocation Failure*",line):
+					# splitted = line.split(" ")
+					# correct += splitted[len(splitted)-2]
+					# skipRest = True
+					afCounter+=1
+			elif re.match("Warmup \(.*\) result:",line):
+				flag = 1
+			if "NOT VALID" in line:
+				valid = 0
+	#check if valid testfile
+	if valid == 0:
+		gc = "NOT VALID-"+gc
+	# correct = "{:.2f}".format(usert)+" "+"{:.2f}".format(syst)+" "+"{:.2f}".format(realt)
+	outputToFile("outputs/allocation_failures/",myfile,str(afCounter),gc,-1,"#\tAllocation Failures")
 
+# with open(os.path.join(path, filename), 'r') as f:
+# 		lines = f.readlines()
+# 		for i,line in enumerate(lines):
+# 			if(skipRest):
+# 				break
+# 			if flag == 1 or re.match(".*startup*", filename):
+# 				# if score is in line get the second to last column of that line
+# 				if re.match(".*Allocation Failure*",line):
+# 					# splitted = line.split(" ")
+# 					# correct += splitted[len(splitted)-2]
+# 					# skipRest = True
+# 					afCounter+=1
+# 			elif re.match("Warmup \(.*\) result:",line):
+# 				flag = 1
+# 			if "NOT VALID" in line:
+# 				valid = 0
+# 	#check if valid testfile
+# 	if valid == 0:
+# 		gc = "NOT VALID-"+gc
+# 	# correct = "{.2f}.format(afCounter)"
+# 	# correct = "{:.2f}".format(usert)+" "+"{:.2f}".format(syst)+" "+"{:.2f}".format(realt)
+# 	outputToFile("outputs/allocation_failures/",myfile,afCounter,gc,-1,"#\tAllocation Failures")
 
 
 def G1read(myfile,filename,path):
@@ -177,9 +234,11 @@ def openFile():
 		silentremove(os.path.dirname("outputs/gc/"))
 		silentremove(os.path.dirname("outputs/heap/"))
 		silentremove(os.path.dirname("outputs/scores/"))
+		silentremove(os.path.dirname("outputs/allocation_failures/"))
 		os.makedirs(os.path.dirname("outputs/heap/"))
 		os.makedirs(os.path.dirname("outputs/gc/"))
 		os.makedirs(os.path.dirname("outputs/scores/"))
+		os.makedirs(os.path.dirname("outputs/allocation_failures/"))
 	except FileExistsError:
 		pass
 	#iterate over folders/tests
@@ -197,57 +256,70 @@ def openFile():
 								GCparseFile("G1-4-1",myfile,filename,path)
 								heapParse("G1-4-1",myfile,filename,path)
 								ScoreParse("G1-4-1",myfile,filename,path)
+								GCAllocationFailures("G1-4-1",myfile,filename,path)
 							elif "_8MB" in filename:
 								GCparseFile("G1-4-8",myfile,filename,path)
 								heapParse("G1-4-8",myfile,filename,path)
 								ScoreParse("G1-4-8",myfile,filename,path)
+								GCAllocationFailures("G1-4-8",myfile,filename,path)
 							elif "_16MB" in filename:
 								GCparseFile("G1-4-16",myfile,filename,path)
 								heapParse("G1-4-16",myfile,filename,path)
 								ScoreParse("G1-4-16",myfile,filename,path)
+								GCAllocationFailures("G1-4-16",myfile,filename,path)
 							elif "_32MB" in filename:
 								GCparseFile("G1-4-32",myfile,filename,path)
 								heapParse("G1-4-32",myfile,filename,path)
 								ScoreParse("G1-4-32",myfile,filename,path)
+								GCAllocationFailures("G1-4-32",myfile,filename,path)
 						else:
 							if "_1MB" in filename:
 								GCparseFile("G1-8-1",myfile,filename,path)
 								heapParse("G1-8-1",myfile,filename,path)
 								ScoreParse("G1-8-1",myfile,filename,path)
+								GCAllocationFailures("G1-8-1",myfile,filename,path)
 							elif "_8MB" in filename:
 								GCparseFile("G1-8-8",myfile,filename,path)
 								heapParse("G1-8-8",myfile,filename,path)
 								ScoreParse("G1-8-8",myfile,filename,path)
+								GCAllocationFailures("G1-8-8",myfile,filename,path)
 							elif "_16MB" in filename:
 								GCparseFile("G1-8-16",myfile,filename,path)
 								heapParse("G1-8-16",myfile,filename,path)
 								ScoreParse("G1-8-15",myfile,filename,path)
+								GCAllocationFailures("G1-8-16",myfile,filename,path)
 							elif "_32MB" in filename:
 								GCparseFile("G1-8-32",myfile,filename,path)
 								heapParse("G1-8-32",myfile,filename,path)
 								ScoreParse("G1-8-32",myfile,filename,path)
+								GCAllocationFailures("G1-8-32",myfile,filename,path)
 				elif re.match(".*ConcMark*",filename):
 					if "4_threads" in filename:
 						# GCparseFile("CSM-4",myfile,filename,path)
 						heapParse("CSM-4",myfile,filename,path)
 						ScoreParse("CSM-4",myfile,filename,path)
+						GCAllocationFailures("CSM-4",myfile,filename,path)
 					elif "8_threads" in filename:
 						# GCparseFile("CSM-8",myfile,filename,path)
 						heapParse("CSM-8",myfile,filename,path)
 						ScoreParse("CSM-8",myfile,filename,path)
+						GCAllocationFailures("CSM-8",myfile,filename,path)
 				elif re.match(".*SerialGc*",filename):
 					GCparseFile("Serial",myfile,filename,path)
 					heapParse("Serial",myfile,filename,path)
 					ScoreParse("Serial",myfile,filename,path)
+					GCAllocationFailures("Serial",myfile,filename,path)
 				elif re.match(".*ParallelOldGC*",filename):
 					if "4_threads" in filename:
 						GCparseFile("Parallel-4",myfile,filename,path)
 						heapParse("Parallel-4",myfile,filename,path)
 						ScoreParse("Parallel-4",myfile,filename,path)
+						GCAllocationFailures("Parallel-4",myfile,filename,path)
 					elif "8_threads" in filename:
 						GCparseFile("Parallel-8",myfile,filename,path)
 						heapParse("Parallel-8",myfile,filename,path)
 						ScoreParse("Parallel-8",myfile,filename,path)
+						GCAllocationFailures("Parallel-8",myfile,filename,path)
 				else:
 					print("couldnt handle "+filename)	
 		except FileExistsError as err:
