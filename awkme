@@ -1,0 +1,2 @@
+NR==1{print $0, "   DIFF\n"}
+NR>2{printf("%s\t%3.1f\n", $0, $2-$1)}
