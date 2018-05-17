@@ -14,8 +14,9 @@ mkdir -p "count-pause/"
 for file in "gc/"*; do
   echo $file
   filename=$(basename $file)
-  awk '!/NOT/{print $1"\t"$(NF-1)"\t"$NF\tNF}' $file >>  "count-pause/$filename.dat"
+  awk '!/NOT/{print $1"\t"$(NF-1)"\t"$NF}' $file >>  "count-pause/$filename.dat"
   sed -i.bak 's/://' "count-pause/$filename.dat"
+  sed -i.bak 's/#/GC RealT GCCount /' "count-pause/$filename.dat"
   passfile="count-pause/$filename.dat"
   passpng="count-pause/$filename.png"
   gnuplot -e "filename='$passfile'; outputname='$passpng'" count-pause.gnu
