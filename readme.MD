@@ -1,39 +1,18 @@
-1. awk script 
-  - paused time / realtime
-    - a: ouputpus/gc/testfile col0 col3
-    - b: ouputpus/duration/testfile col0 col1
-    - if !"Valid" print col0 col3/col1
-  - paused time / realtime
-    - a: ouputpus/gc/testfile col0 col3
-    - b: ouputpus/duration/testfile col0 col1
-    - if !"Valid" print col0 col3/col1
+## Description
 
 
-General Plots:
+## Requirements:
+  - Unix Machine
+  - SpecJVM  `curl -s -o SPECjvm2008_1_01_setup.jar http://spec.cs.miami.edu/downloads/osg/java/SPECjvm2008_1_01_setup.jar`
+  - Python 3.4+
 
-  - # Scores per output/scores/testfile (2 cols only) #
-  - # Durations #
-  - # Allocation Failures per output/allocation_failures/testfile (2 cols only) #
+## How to run:
+  ###	Gather Data:
+	`$ ./benchmark_G1.sh && ./benchmark_Serial && ./benchmark_rest.sh`
 
-G1 Specific
-  -  young + survivor
+  ### Parse Data:
+ 	`$ python3 parser.py` , created files will be landed in output/ directory 
 
-
-CMS/Parallel/Serial
-  eden & from space 
-
-
-
-  |
-  |
-  |
-  |
-  |
-  |
-  |
-  | _____||______||_____||____||___________________________
-      G1/4/8    
-
-
-python3 scoreplot.py inside scores folder
-rm -rf *__* *.png
+### Plot Data:
+	`$ ./plotdata.sh`, inside output/ directory, each folder holds the parsed data and the images, per
+	benchmark.
