@@ -32,3 +32,7 @@ CMS/Parallel/Serial
   |
   | _____||______||_____||____||___________________________
       G1/4/8    
+
+
+python3 scoreplot.py inside scores folder
+rm -rf *__* *.png
