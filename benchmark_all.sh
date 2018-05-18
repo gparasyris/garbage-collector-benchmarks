@@ -1,1 +1,1 @@
-./benchmark_G1.sh && ./benchmark_rest.sh && ./benchmark_all.sh
+./benchmark-scripts/benchmark_G1.sh && ./benchmark-scripts/benchmark_4_th.sh && ./benchmark-scripts/benchmark_8_th.sh
