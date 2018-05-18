@@ -48,4 +48,4 @@ Different parameters were supplied, specified to each Garbage Collector, in orde
   Displaying amount of time GC Pauses lasted as a total, in accordance with the amount of them,  per benchmark per GC.
 
 #### - Score
-  Displaying the score, as it is deliverd by SpecJVM2008, per benchmark per GC (higher is better).
+  Displaying the score, as it is delivered by SPECjvm2008, per benchmark per GC (higher is better).
