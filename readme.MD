@@ -5,7 +5,7 @@
 	- Serial
 	- CMS
 	- G1
-	- Parallell
+	- Parallel
 
 Different parameters were supplied, specified to each Garbage Collector, in order to study the actual impact of said parameters on GC's Performance.
 
@@ -36,7 +36,7 @@ Different parameters were supplied, specified to each Garbage Collector, in orde
 	benchmark.
 
 #### - Allocation Failures
-  Displaying the sum of Application Failures per benchmark per GC (lower is better).
+  Displaying the sum of Allocation Failures per benchmark per GC (lower is better).
 
 #### - Duration
   Displaying the duration per benchmark per GC (lower is better).
@@ -48,4 +48,4 @@ Different parameters were supplied, specified to each Garbage Collector, in orde
   Displaying amount of time GC Pauses lasted as a total, in accordance with the amount of them,  per benchmark per GC.
 
 #### - Score
-  Displaying the score, as it is deliverd by SpecJVM2008, per benchmark per GC (higher is better)
+  Displaying the score, as it is deliverd by SpecJVM2008, per benchmark per GC (higher is better).
