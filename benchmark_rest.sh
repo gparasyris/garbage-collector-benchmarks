@@ -61,7 +61,7 @@ declare -a samples=("startup.helloworld" "startup.compiler.compiler" "startup.co
 # declare -a HeapSize=("1" "8"  )
 # declare -a Threads=("4" "8")
 
-declare -a GCs=("+UseConcMarkSweepGC" "+UseParallelOldGC")
+declare -a GCs=("+UseConcMarkSweepGC" "+UseParallelOldGC" "+UseSerial")
 declare -a HeapSize=("EMPTY")
 # declare -a Threads=("4" "8")
 
