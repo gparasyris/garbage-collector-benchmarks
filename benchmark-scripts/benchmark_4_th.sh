@@ -67,9 +67,10 @@ declare -a GCs=("+UseConcMarkSweepGC" "+UseParallelOldGC" "+UseSerial")
 
 
 #make all,error dirs if not there
-mkdir -p data4th
-mkdir -p data4th/all
-mkdir -p data4th/errors
+mkdir -p data/
+mkdir -p data/data4th
+mkdir -p data/data4th/all
+mkdir -p data/data4th/errors
 
 #timestamp
 echo "+++++++++++++++++++++++++++++++++++++++++" >> current_state.txt
@@ -85,7 +86,7 @@ SECONDS=0;
 for hp in "${HeapSize[@]}"
 do
 	#make folder if not there
-	mkdir -p "data4th/${hp}"
+	mkdir -p "data/data4th/${hp}"
 
 	#log the state of the run
 	echo "Starting with Heap Size: ${hp}" >> current_state.txt
@@ -95,7 +96,7 @@ do
 	for gc in "${GCs[@]}"
 	do
 		#make folder if not there
-        	mkdir -p "data4th/${gc}"
+        	mkdir -p "data/data4th/${gc}"
 
         	#log the state of the run
 		echo "Using Garbage Collector: ${gc}" >> current_state.txt
@@ -105,7 +106,7 @@ do
 		for s in "${samples[@]}"
 		do
 			#make folder if not there
-        		mkdir -p "data4th/${s}"
+        		mkdir -p "data/data4th/${s}"
 
         		#log the state of the run
 			#echo "Testfile:" >> current_state.txt
@@ -113,19 +114,19 @@ do
 			echo -e "\t${s}" >> current_state.txt
 
 			#command
-			java "-Xmx600m" "-XX:${gc}" -verbose:gc -XX:ParallelGCThreads=4 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar SPECjvm2008.jar "$s" >> "${s}_${gc}_${hp}.txt" 2> "data4th/errors/${s}_${gc}_${hp}.txt"
+			java "-Xmx600m" "-XX:${gc}" -verbose:gc -XX:ParallelGCThreads=4 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar SPECjvm2008.jar "$s" >> "${s}_${gc}_${hp}.txt" 2> "data/data4th/errors/${s}_${gc}_${hp}.txt"
 
-			#delete data4th/errors/file if empty
-			if [ ! -s "data4th/errors/${s}_${gc}_${hp}.txt" ]
+			#delete data/data4th/errors/file if empty
+			if [ ! -s "data/data4th/errors/${s}_${gc}_${hp}.txt" ]
   			then
-    				rm -f "data4th/errors/${s}_${gc}_${hp}.txt"
+    				rm -f "data/data4th/errors/${s}_${gc}_${hp}.txt"
 			fi
 
 			#move to folders based on the three attributes
-			cp "${s}_${gc}_${hp}.txt" "data4th/${s}/."
-			cp "${s}_${gc}_${hp}.txt" "data4th/${gc}/${s}_${hp}.txt"
-			cp "${s}_${gc}_${hp}.txt" "data4th/${hp}/${s}_${gc}.txt"
-			mv "${s}_${gc}_${hp}.txt" "data4th/all/."
+			cp "${s}_${gc}_${hp}.txt" "data/data4th/${s}/."
+			cp "${s}_${gc}_${hp}.txt" "data/data4th/${gc}/${s}_${hp}.txt"
+			cp "${s}_${gc}_${hp}.txt" "data/data4th/${hp}/${s}_${gc}.txt"
+			mv "${s}_${gc}_${hp}.txt" "data/data4th/all/."
 		done
 		echo -e "\nFinished GC: ${gc}" >> current_state.txt
 		echo -e "-------------------------------\n" >> current_state.txt

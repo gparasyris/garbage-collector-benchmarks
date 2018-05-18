@@ -67,9 +67,10 @@ declare -a Threads=("4" "8")
 
 
 #make all,error dirs if not there
-mkdir -p dataG1
-mkdir -p dataG1/all
-mkdir -p dataG1/errors
+mkdir -p data/
+mkdir -p data/dataG1
+mkdir -p data/dataG1/all
+mkdir -p data/dataG1/errors
 
 #timestamp
 echo "+++++++++++++++++++++++++++++++++++++++++" >> current_state.txt
@@ -89,7 +90,7 @@ do
 	MBytes=$((${hp} / 1024 / 1024))
 
 	#make folder if not there
-	mkdir -p "dataG1/HeapSize ${MBytes}MB"
+	mkdir -p "data/dataG1/HeapSize ${MBytes}MB"
 
 	#log the state of the run
 	echo "Starting with Heap Size: ${MBytes}MB" >> current_state.txt
@@ -99,7 +100,7 @@ do
 	for th in "${Threads[@]}"
 	do
 		#make folder if not there
-        	mkdir -p "dataG1/Threads ${th}"
+        	mkdir -p "data/dataG1/Threads ${th}"
 
         	#log the state of the run
 		echo "Using Thread Number: ${th}" >> current_state.txt
@@ -109,7 +110,7 @@ do
 		for s in "${samples[@]}"
 		do
 			#make folder if not there
-        		mkdir -p "dataG1/${s}"
+        		mkdir -p "data/dataG1/${s}"
 
         		#log the state of the run
 			#echo "Testfile:" >> current_state.txt
@@ -117,19 +118,19 @@ do
 			echo -e "\t${s}" >> current_state.txt
 
 			#command
-			java -Xmx600m -XX:+UseG1GC -verbose:gc -XX:ParallelGCThreads=${th} -XX:G1HeapRegionSize=${hp} -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar SPECjvm2008.jar "$s" >> "${s}_TH=${th}_${MBytes}MB.txt" 2> "dataG1/errors/${s}_TH=${th}_${MBytes}MB.txt"
+			java -Xmx600m -XX:+UseG1GC -verbose:gc -XX:ParallelGCThreads=${th} -XX:G1HeapRegionSize=${hp} -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar SPECjvm2008.jar "$s" >> "${s}_TH=${th}_${MBytes}MB.txt" 2> "data/dataG1/errors/${s}_TH=${th}_${MBytes}MB.txt"
 
-			#delete dataG1/errors/file if empty
-			if [ ! -s "dataG1/errors/${s}_TH=${th}_${MBytes}MB.txt" ]
+			#delete data/dataG1/errors/file if empty
+			if [ ! -s "data/dataG1/errors/${s}_TH=${th}_${MBytes}MB.txt" ]
   			then
-    				rm -f "dataG1/errors/${s}_TH=${th}_${MBytes}MB.txt"
+    				rm -f "data/dataG1/errors/${s}_TH=${th}_${MBytes}MB.txt"
 			fi
 
 			#move to folders based on the three attributes
-			cp "${s}_TH=${th}_${MBytes}MB.txt" "dataG1/${s}/."
-			cp "${s}_TH=${th}_${MBytes}MB.txt" "dataG1/Threads ${th}/${s}_${MBytes}MB.txt"
-			cp "${s}_TH=${th}_${MBytes}MB.txt" "dataG1/HeapSize ${MBytes}MB/${s}_TH=${th}.txt"
-			mv "${s}_TH=${th}_${MBytes}MB.txt" "dataG1/all/."
+			cp "${s}_TH=${th}_${MBytes}MB.txt" "data/dataG1/${s}/."
+			cp "${s}_TH=${th}_${MBytes}MB.txt" "data/dataG1/Threads ${th}/${s}_${MBytes}MB.txt"
+			cp "${s}_TH=${th}_${MBytes}MB.txt" "data/dataG1/HeapSize ${MBytes}MB/${s}_TH=${th}.txt"
+			mv "${s}_TH=${th}_${MBytes}MB.txt" "data/dataG1/all/."
 		done
 		echo -e "\nFinished with Thread Number: ${th}" >> current_state.txt
 		echo -e "-------------------------------\n" >> current_state.txt
