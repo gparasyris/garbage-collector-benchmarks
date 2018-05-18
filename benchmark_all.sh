@@ -1,0 +1,1 @@
+./benchmark_G1.sh && ./benchmark_rest.sh && ./benchmark_all.sh

@@ -9,6 +9,9 @@
 
 Different parameters were supplied, specified to each Garbage Collector, in order to study the actual impact of said parameters on GC's Performance.
 
+The amount of 4 and 8 threads was supplied where applicable.
+Also, G1 Hearp Region Size was used as a parameter, where 1MB, 8MB, 16MB, 32MB values were tested.
+
   Inluded Workloads: 
   
   _startup.helloworld, startup.compiler.compiler, startup.compress, startup.crypto.aes, startup.crypto.rsa, startup.crypto.signverify,
