@@ -26,7 +26,7 @@ Different parameters were supplied, specified to each Garbage Collector, in orde
 
 ## How to run:
 ###	Gather Data:
-	`$ ./benchmark_G1.sh && ./benchmark_rest.sh`
+	`$ ./benchmark_all.sh`
 
 ### Parse Data:
  	`$ python3 parser.py` , created files will be landed in output/ directory 
