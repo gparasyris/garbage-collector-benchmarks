@@ -62,7 +62,7 @@ declare -a samples=("startup.helloworld" "startup.compiler.compiler" "startup.co
 # declare -a Threads=("4" "8")
 
 declare -a GCs=("+UseConcMarkSweepGC" "+UseParallelOldGC" "+UseSerial")
-declare -a HeapSize=("EMPTY")
+declare -a HeapSize=("4_TH")
 # declare -a Threads=("4" "8")
 
 
@@ -73,11 +73,11 @@ mkdir -p data/data4th/all
 mkdir -p data/data4th/errors
 
 #timestamp
-echo "+++++++++++++++++++++++++++++++++++++++++" >> current_state.txt
-echo -e "+\t\t\t\t\t+" >> current_state.txt
-echo -e "+   " $(date +"%c") "  +" >> current_state.txt
-echo -e "+\t\t\t\t\t+" >> current_state.txt
-echo -e "+++++++++++++++++++++++++++++++++++++++++\n" >> current_state.txt
+echo "+++++++++++++++++++++++++++++++++++++++++" 
+echo -e "+\t\t\t\t\t+" 
+echo -e "+   " $(date +"%c") "  +" 
+echo -e "+\t\t\t\t\t+" 
+echo -e "+++++++++++++++++++++++++++++++++++++++++\n" 
 
 #measure time
 SECONDS=0;
@@ -89,7 +89,7 @@ do
 	mkdir -p "data/data4th/${hp}"
 
 	#log the state of the run
-	echo "Starting with Heap Size: ${hp}" >> current_state.txt
+	echo "Starting with Heap Size: ${hp}" 
 	echo -e "--------------------------------------\n" >>  current_state.txt
 
 	#with different Garbage Collector
@@ -99,9 +99,9 @@ do
         	mkdir -p "data/data4th/${gc}"
 
         	#log the state of the run
-		echo "Using Garbage Collector: ${gc}" >> current_state.txt
-		echo "-------------------------------" >> current_state.txt
-		echo -e "\nTestfile:" >> current_state.txt
+		echo "Using Garbage Collector: ${gc}" 
+		echo "-------------------------------" 
+		echo -e "\nTestfile:" 
 		#every sample
 		for s in "${samples[@]}"
 		do
@@ -109,11 +109,12 @@ do
         		mkdir -p "data/data4th/${s}"
 
         		#log the state of the run
-			#echo "Testfile:" >> current_state.txt
-			#echo "------------------------" >> current_state.txt
-			echo -e "\t${s}" >> current_state.txt
-
+			#echo "Testfile:" 
+			#echo "------------------------" 
+			echo -e "\t${s}" 
+			echo "******"
 			#command
+			echo "java '-Xmx600m' '-XX:${gc}' -verbose:gc -XX:ParallelGCThreads=4 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar SPECjvm2008.jar '$s' >> '${s}_${gc}_${hp}.txt'"
 			java "-Xmx600m" "-XX:${gc}" -verbose:gc -XX:ParallelGCThreads=4 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar SPECjvm2008.jar "$s" >> "${s}_${gc}_${hp}.txt" 2> "data/data4th/errors/${s}_${gc}_${hp}.txt"
 
 			#delete data/data4th/errors/file if empty
@@ -128,20 +129,20 @@ do
 			cp "${s}_${gc}_${hp}.txt" "data/data4th/${hp}/${s}_${gc}.txt"
 			mv "${s}_${gc}_${hp}.txt" "data/data4th/all/."
 		done
-		echo -e "\nFinished GC: ${gc}" >> current_state.txt
-		echo -e "-------------------------------\n" >> current_state.txt
+		echo -e "\nFinished GC: ${gc}" 
+		echo -e "-------------------------------\n" 
 	done
-	echo "Finished runs with Heap Size: ${hp}" >> current_state.txt
-	echo -e "--------------------------------------\n" >> current_state.txt
+	echo "Finished runs with Heap Size: ${hp}" 
+	echo -e "--------------------------------------\n" 
 done
 
 #get seconds
 duration=$SECONDS
 
 #timestamp
-echo "+++++++++++++++++++++++++++++++++++++++++" >> current_state.txt
-echo -e "+\t\t\t\t\t+" >> current_state.txt
-echo -e "+   " $(date +"%c") "  +" >> current_state.txt
-echo "+    $(($duration / 3600)) hours and $(($duration / 60)) minutes elapsed.   +" >> current_state.txt
-echo -e "+\t\t\t\t\t+" >> current_state.txt
-echo -e "+++++++++++++++++++++++++++++++++++++++++\n\n" >> current_state.txt
+echo "+++++++++++++++++++++++++++++++++++++++++" 
+echo -e "+\t\t\t\t\t+" 
+echo -e "+   " $(date +"%c") "  +" 
+echo "+    $(($duration / 3600)) hours and $(($duration / 60)) minutes elapsed.   +" 
+echo -e "+\t\t\t\t\t+" 
+echo -e "+++++++++++++++++++++++++++++++++++++++++\n\n" 
